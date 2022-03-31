@@ -11,10 +11,10 @@ TagManager:
   - 
   - Water
   - UI
-  - 
-  - 
-  - 
-  - 
+  - Player
+  - Resource
+  - ResourceTrigger
+  - ConsumingZone
   - 
   - 
   - 

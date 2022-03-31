@@ -5,9 +5,13 @@ using UnityEngine;
 public class Player : MonoBehaviour
 {
     [SerializeField]
+    ResourceAbsorbingZone zone;
+    [SerializeField]
     GameObject leftStick;
     [SerializeField]
     float speedModifier = 3;
+    [SerializeField]
+    BackpackStack backPack;
 
     Joystick joystick;
     Animator animator;
@@ -21,6 +25,7 @@ public class Player : MonoBehaviour
         characterController = GetComponent<CharacterController>();
         animator = GetComponent<Animator>();
         joystick = leftStick.GetComponent<Joystick>();
+        zone.OnResourceCollision += ResourceCollisionHandler;
     }
 
     // Update is called once per frame
@@ -33,7 +38,13 @@ public class Player : MonoBehaviour
             transform.rotation = Quaternion.LookRotation(NextDir);
         }
         characterController.Move(NextDir * Time.fixedDeltaTime * speedModifier);
-        Debug.Log(characterController.velocity.magnitude);
         animator.SetFloat("Speed", characterController.velocity.magnitude);
+    }
+
+    public bool Staying { get => characterController.velocity.magnitude <= .01; }
+
+    void ResourceCollisionHandler (object sender, Resource resource)
+    {
+        if (!backPack.Full) backPack.add(resource);
     }
 }
