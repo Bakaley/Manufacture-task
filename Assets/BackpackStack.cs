@@ -4,7 +4,7 @@ using UnityEngine;
 using System.Reflection;
 using System;
 
-public class BackpackStack : ItemStack
+public class BackpackStack : ItemStack, ResourceReceiver
 {
 
     protected override void Awake()
@@ -21,7 +21,7 @@ public class BackpackStack : ItemStack
     }
 
 
-    public override void add(Resource resource)
+    protected override void add(Resource resource)
     {
         ((StackList<Resource>)collection).Push(resource);
         resource.gameObject.layer = 0;
@@ -54,13 +54,20 @@ public class BackpackStack : ItemStack
         return ((StackList<Resource>)collection).Pop(res);
     }
 
-    protected override void remove(Resource resource)
+    public bool canReceiveResource(Type type)
     {
-        ((StackList<Resource>)collection).Remove(resource);
+        return Full;
     }
 
-    private class StackList<T> : List<T> where T : Resource
+    public void receive(Resource resource)
     {
+        add(resource);
+    }
+
+    private class StackList<T> : CustomStackCollection<T> where T : Resource
+    {
+        public override int Count => list.Count;
+
         public void Push(T item)
         {
             Insert(Count, item);
@@ -78,9 +85,9 @@ public class BackpackStack : ItemStack
             return null;
         }
         public event EventHandler OnResourcePopped;
-        public void Remove (Resource item)
+        public override void Remove (Resource item)
         {
-            base.Remove((T)item);
+            list.Remove((T)item);
             RemoveAll(item => item == null);
             OnResourcePopped?.Invoke(this, EventArgs.Empty);
         }

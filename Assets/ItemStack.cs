@@ -1,13 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 public abstract class ItemStack : MonoBehaviour
 {
     //размеры бочек, которые будут хранитьс€ в контейнере
     //предполагаетс€, что размеры бочки не измен€тс€ в течении игры
     [SerializeField]
-    protected Rigidbody sizeCellSampler;
+    protected BoxCollider sizeCellSampler;
 
     //бочек в одном р€ду
     [SerializeField]
@@ -21,9 +22,12 @@ public abstract class ItemStack : MonoBehaviour
 
     protected Vector3 cellSize;
 
-    int maxSize;
+    protected int maxSize
+    {
+        get; private set;
+    }
 
-    protected List<Resource> collection;
+    protected CustomStackCollection<Resource> collection;
 
 
     protected virtual void Awake()
@@ -47,11 +51,50 @@ public abstract class ItemStack : MonoBehaviour
     }
 
     //добавл€ет бочку в коллекцию и находит ей место 
-    public abstract void add(Resource resource);
+    protected abstract void add(Resource resource);
     
+    protected abstract class CustomStackCollection<T> where T : Resource
+    {
+        protected List<Resource> list = new List<Resource>();
 
-    //убирает еЄ из коллекции
-    protected abstract void remove(Resource resource);
+        public abstract int Count { get; }
 
+        public abstract void Remove(Resource res);
+
+        public IEnumerator GetEnumerator()
+        {
+            return list.GetEnumerator();
+        }
+
+        public int IndexOf(Resource res)
+        {
+            return list.IndexOf(res);
+        }
+
+        public void Insert(int index, Resource res)
+        {
+            list.Insert(index, res);
+        }
+
+
+        
+        public Resource this [int index]
+        {
+            get
+            {
+                return list[index];
+            }
+            set
+            {
+                list[index] = value;
+            }
+        }
+
+        public void RemoveAll(Predicate<Resource> predicate)
+        {
+            list.RemoveAll(predicate);
+        }
+
+    }
 
 }

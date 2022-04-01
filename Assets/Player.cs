@@ -45,6 +45,6 @@ public class Player : MonoBehaviour
 
     void ResourceCollisionHandler (object sender, Resource resource)
     {
-        if (!backPack.Full) backPack.add(resource);
+        if (!backPack.Full) backPack.receive(resource);
     }
 }

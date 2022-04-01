@@ -4,23 +4,36 @@ using UnityEngine;
 
 public class ConsumingZone : MonoBehaviour
 {
-    FactoryStack factoryStack;
-    BoxCollider zoneCollider;
     [SerializeField]
-    Resource[] resourceConsumingSamplers;
+    Resource[] resourceReceivingSamplers;
 
-    System.Type[] resourceTypes;
+    System.Type[] typesToConsume;
+
+    FactoryStack factoryStack;
+
+    [SerializeField]
+    GameObject receiverObj;
+
+    ResourceReceiver receiver = null;
+
+    public System.Type ResourceType
+    {
+        get; private set;
+    }
+
 
     Player player;
     BackpackStack backpackStack;
 
     private void Start()
     {
-        resourceTypes = new System.Type[resourceConsumingSamplers.Length];
-        for (int i = 0; i < resourceTypes.Length; i++)
+        factoryStack = GetComponent<FactoryStack>();
+        if(receiverObj) receiver = receiverObj.GetComponent<ResourceReceiver>();
+        typesToConsume = new System.Type[resourceReceivingSamplers.Length];
+        for (int i = 0; i < resourceReceivingSamplers.Length; i++)
         {
-            resourceTypes[i] = resourceConsumingSamplers[i].GetType();
-        } 
+            typesToConsume[i] = resourceReceivingSamplers[i].GetType();
+        }
     }
 
     private void OnTriggerEnter(Collider other)
@@ -41,7 +54,7 @@ public class ConsumingZone : MonoBehaviour
         {
             if (!CR_running)
             {
-                StartCoroutine(startConsuming(backpackStack, resourceTypes).GetEnumerator());
+                StartCoroutine(startConsuming(backpackStack, typesToConsume).GetEnumerator());
                 CR_running = true;
             }
         }
@@ -63,20 +76,23 @@ public class ConsumingZone : MonoBehaviour
     //подогнать размер триггерной зоны под размеры области (только для эдитора)
     public void resizeZoneOfSprite()
     {
-        GetComponent<BoxCollider>().size = new Vector3(GetComponent<SpriteRenderer>().size.x + 1, GetComponent<SpriteRenderer>().size.y + 1, GetComponent<BoxCollider>().size.z);
+        GetComponent<BoxCollider>().size = new Vector3(GetComponentInChildren<SpriteRenderer>().size.x + 1, GetComponentInChildren<SpriteRenderer>().size.y + 1, GetComponent<BoxCollider>().size.z);
     }
 
     Resource res;
 
-    IEnumerable startConsuming(BackpackStack stack, System.Type[] resourceTypes)
+    IEnumerable startConsuming(BackpackStack stack, System.Type[] resourceType)
     {
         while (true)
         {
-            foreach (System.Type type in resourceTypes)
+            foreach (System.Type type in resourceType)
             {
-                //Debug.Log(stack.Pop(type));
-                res = stack.Pop(type);
-                if(res) res.moveTo(transform, Vector3.zero);
+                if (receiver != null && receiver.canReceiveResource(type))
+                {
+                    res = stack.Pop(type);
+                    if (res) receiver.receive(res);
+                    yield return new WaitForSeconds(.1f);
+                }
             }
             yield return new WaitForSeconds(.1f);
         }

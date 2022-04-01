@@ -37,7 +37,17 @@ public class Resource : MonoBehaviour
         this.offset = localOffset;
         speed = 12;
         moving = true;
-
+        if (factoryStack != null && targetParent.GetComponent<BackpackStack>())
+        {
+            factoryStack.remove(this);
+        }
+        factoryStack = null;
+        if (targetParent.GetComponent<FactoryStack>())
+        {
+            factoryStack = targetParent.GetComponent<FactoryStack>();
+        }
+        //на всякий случай
+        Invoke("stop", .5f);
     }
 
     private void FixedUpdate()
@@ -64,4 +74,7 @@ public class Resource : MonoBehaviour
         transform.localPosition = offset;
         transform.localRotation = Quaternion.Euler(0, 0, 0);
     }
+
+    FactoryStack factoryStack;
+
 }
